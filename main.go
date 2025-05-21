@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,6 +40,17 @@ func formGet() func(*gin.Context) {
 		fmt.Println(item.Name)
 		fmt.Println(item.User)
 		fmt.Println(item.Location)
+
+		db, dbErr := os.OpenFile("db/db.json", os.O_APPEND|os.O_WRONLY, 0644)
+		defer db.Close()
+		if dbErr != nil {
+			fmt.Printf("DB ERROR! %v", dbErr)
+		}
+		encdr := json.NewEncoder(db)
+		if err := encdr.Encode(*item); err != nil {
+			fmt.Print(err)
+			fmt.Print("here")
+		}
 
 		c.Redirect(http.StatusSeeOther, "/")
 	}
