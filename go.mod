@@ -1,4 +1,4 @@
-module gin
+module grocery-list
 
 go 1.19
 
