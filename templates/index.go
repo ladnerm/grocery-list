@@ -1,4 +1,8 @@
-<!DOCTYPE html>
+package templates
+
+import "html/template"
+
+var Temp = template.Must(template.New("index").Parse(`<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -162,14 +166,12 @@ body {
                     items.forEach(item => {
                         const div = document.createElement('div');
                         div.className = 'item';
-                        div.innerHTML = `
-                            <div class="item-header">
-                            <span><strong>What:</strong> ${item.name}</span>
-                            <button class="item-btn" onclick="deleteItem(${item.id})">✖</button>
-                            </div>
-                            <span><strong>Who:</strong> ${item.user}</span>
-                            <span><strong>Where:</strong> ${item.location}</span>
-                            `;
+                        div.innerHTML = '<div class="item-header">' +
+                    '<span><strong>What:</strong> ' + item.name + '</span>' +
+                    '<button class="item-btn" onclick="deleteItem(' + item.id + ')">✖</button>' +
+                    '</div>' +
+                    '<span><strong>Who:</strong> ' + item.user + '</span>' +
+                    '<span><strong>Where:</strong> ' + item.location + '</span>';
                         itemList.appendChild(div);
                     });
                 } catch (error) {
@@ -177,8 +179,30 @@ body {
                 }
             }
 
+            async function deleteItem(id) {
+
+                try {
+                    const res = await fetch('/' + id, {
+                        method: 'DELETE'
+                    });
+
+                    if (!res.ok) {
+                        const msg = await res.json();
+                        alert("Failed to delete: " + (msg.error || "Unknown error"));
+                        return;
+                    }
+
+                    loadItems(); // Refresh list
+                } catch (err) {
+                    console.error("Error deleting item:", err);
+                    alert("Error deleting item");
+                }
+            }
+
+
             loadItems();
         </script>
     </body>
 
 </html>
+`))

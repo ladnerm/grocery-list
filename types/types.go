@@ -1,7 +1,5 @@
 package types
 
-var id = 0
-
 type Item struct {
 	ID       int    `json:"id"`
 	Name     string `json:"name"`
@@ -10,9 +8,8 @@ type Item struct {
 }
 
 func NewItem(name string, user string, location string) *Item {
-	id++
 	return &Item{
-		ID:       id,
+		ID:       0,
 		Name:     name,
 		User:     user,
 		Location: location,

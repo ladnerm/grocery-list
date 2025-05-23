@@ -6,13 +6,16 @@ import (
 	"grocery-list/types"
 	"net/http"
 	"os"
+    "strconv"
+    "grocery-list/templates"
 
 	"github.com/gin-gonic/gin"
 )
 
 func HandlerGetIndex() func(*gin.Context) {
 	return func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", nil)
+        c.Status(http.StatusOK)
+        templates.Temp.Execute(c.Writer, nil)
 	}
 }
 
@@ -41,10 +44,6 @@ func HandlerPostForm() func(*gin.Context) {
 
 		item := types.NewItem(str, usr, loc)
 
-		fmt.Println(item.Name)
-		fmt.Println(item.User)
-		fmt.Println(item.Location)
-
 		db, dbErr := os.OpenFile("db/db.json", os.O_RDWR, 0644)
 
 		if dbErr != nil {
@@ -57,6 +56,10 @@ func HandlerPostForm() func(*gin.Context) {
 		if err != nil {
 			//do something
 		}
+
+        if len(itemArr) != 0 {
+            item.ID = itemArr[len(itemArr)-1].ID + 1
+        }
 		itemArr = append(itemArr, *item)
 		db.Close()
 
@@ -74,3 +77,51 @@ func HandlerPostForm() func(*gin.Context) {
 		c.Redirect(http.StatusSeeOther, "/")
 	}
 }
+
+func HandlerDeleteItem() func(*gin.Context) {
+    return func(c *gin.Context) {
+        id := c.Param("id")
+
+		db, dbErr := os.OpenFile("db/db.json", os.O_RDWR, 0644)
+		if dbErr != nil {
+			fmt.Printf("DB ERROR! %v", dbErr)
+		}
+
+		dcdr := json.NewDecoder(db)
+		var itemArr []types.Item
+		err := dcdr.Decode(&itemArr)
+		if err != nil {
+			//do something
+		}
+		db.Close()
+
+        var newItemArr []types.Item
+
+        for _, v := range itemArr {
+            iid, err := strconv.Atoi(id)
+            if err != nil {
+                //Do something
+            }
+            if v.ID != iid {
+                newItemArr = append(newItemArr, v)
+            }
+        }
+
+
+		db, dbErr = os.Create("db/db.json")
+		defer db.Close()
+		if dbErr != nil {
+			fmt.Printf("DB ERROR! %v", dbErr)
+		}
+		encdr := json.NewEncoder(db)
+        err = encdr.Encode(newItemArr); 
+		if err != nil {
+			fmt.Print(err)
+		}
+
+    }
+}
+
+
+
+
