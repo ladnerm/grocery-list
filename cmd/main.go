@@ -1,18 +1,18 @@
 package main
 
 import (
-    "grocery-list/handlers"
+	"grocery-list/handlers"
 
 	"github.com/gin-gonic/gin"
 )
 
 func addHandlers(e *gin.Engine) {
-    x := handlers.HandlerGetIndex()
+	x := handlers.HandlerGetIndex()
 	y := handlers.HandlerPostForm()
-    z := handlers.HandlerGetItems()
+	z := handlers.HandlerGetItems()
 	// URL, WHAT TO DO WITH THE INFORMATION
 	e.GET("/", x)
-    e.GET("/items", z)
+	e.GET("/items", z)
 	e.POST("/form", y)
 }
 
@@ -24,7 +24,7 @@ func main() {
 	// Load HTML Templates
 	router.LoadHTMLGlob("templates/*")
 
-    addHandlers(router)
+	addHandlers(router)
 
 	router.Run() //:8080
 }

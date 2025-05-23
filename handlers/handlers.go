@@ -1,36 +1,36 @@
 package handlers
 
 import (
-    "net/http"
-    "grocery-list/types"
-    "fmt"
-    "os"
-    "encoding/json"
+	"encoding/json"
+	"fmt"
+	"grocery-list/types"
+	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 func HandlerGetIndex() func(*gin.Context) {
-    return func(c *gin.Context) {
-    	c.HTML(http.StatusOK, "index.html", nil)
-    }
+	return func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", nil)
+	}
 }
 
 func HandlerGetItems() func(*gin.Context) {
 	return func(c *gin.Context) {
-        db, dbErr := os.OpenFile("db/db.json", os.O_RDONLY, 0644)
-        if dbErr != nil {
+		db, dbErr := os.OpenFile("db/db.json", os.O_RDONLY, 0644)
+		if dbErr != nil {
 			fmt.Printf("DB ERROR! %v", dbErr)
-        }
-        dcdr := json.NewDecoder(db)
+		}
+		dcdr := json.NewDecoder(db)
 
-        var itemArr []types.Item
-        err := dcdr.Decode(&itemArr)
-        if err != nil {
-            //do something    
-        }
-        c.JSON(http.StatusOK, itemArr)
-    }
+		var itemArr []types.Item
+		err := dcdr.Decode(&itemArr)
+		if err != nil {
+			//do something
+		}
+		c.JSON(http.StatusOK, itemArr)
+	}
 }
 
 func HandlerPostForm() func(*gin.Context) {
@@ -51,13 +51,13 @@ func HandlerPostForm() func(*gin.Context) {
 			fmt.Printf("DB ERROR! %v", dbErr)
 		}
 
-        dcdr := json.NewDecoder(db)
-        var itemArr []types.Item
-        err := dcdr.Decode(&itemArr)
-        if err != nil {
-            //do something    
-        }
-        itemArr = append(itemArr, *item)
+		dcdr := json.NewDecoder(db)
+		var itemArr []types.Item
+		err := dcdr.Decode(&itemArr)
+		if err != nil {
+			//do something
+		}
+		itemArr = append(itemArr, *item)
 		db.Close()
 
 		db, dbErr = os.Create("db/db.json")
@@ -74,4 +74,3 @@ func HandlerPostForm() func(*gin.Context) {
 		c.Redirect(http.StatusSeeOther, "/")
 	}
 }
-
