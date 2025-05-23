@@ -28,15 +28,30 @@ func HandlerPostForm() func(*gin.Context) {
 		fmt.Println(item.User)
 		fmt.Println(item.Location)
 
-		db, dbErr := os.OpenFile("db/db.json", os.O_APPEND|os.O_WRONLY, 0644)
+		db, dbErr := os.OpenFile("db/db.json", os.O_RDWR, 0644)
+
+		if dbErr != nil {
+			fmt.Printf("DB ERROR! %v", dbErr)
+		}
+
+        dcdr := json.NewDecoder(db)
+        var itemArr []types.Item
+        err := dcdr.Decode(&itemArr)
+        if err != nil {
+            //do something    
+        }
+        itemArr = append(itemArr, *item)
+		db.Close()
+
+		db, dbErr = os.Create("db/db.json")
 		defer db.Close()
 		if dbErr != nil {
 			fmt.Printf("DB ERROR! %v", dbErr)
 		}
 		encdr := json.NewEncoder(db)
-		if err := encdr.Encode(*item); err != nil {
+
+		if err := encdr.Encode(itemArr); err != nil {
 			fmt.Print(err)
-			fmt.Print("here")
 		}
 
 		c.Redirect(http.StatusSeeOther, "/")
