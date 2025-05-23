@@ -11,9 +11,26 @@ import (
 )
 
 func HandlerGetIndex() func(*gin.Context) {
+    return func(c *gin.Context) {
+    	c.HTML(http.StatusOK, "index.html", nil)
+    }
+}
+
+func HandlerGetItems() func(*gin.Context) {
 	return func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{})
-	}
+        db, dbErr := os.OpenFile("db/db.json", os.O_RDONLY, 0644)
+        if dbErr != nil {
+			fmt.Printf("DB ERROR! %v", dbErr)
+        }
+        dcdr := json.NewDecoder(db)
+
+        var itemArr []types.Item
+        err := dcdr.Decode(&itemArr)
+        if err != nil {
+            //do something    
+        }
+        c.JSON(http.StatusOK, itemArr)
+    }
 }
 
 func HandlerPostForm() func(*gin.Context) {
