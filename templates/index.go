@@ -157,7 +157,7 @@ body {
         <script>
             async function loadItems() {
                 try {
-                    const response = await fetch('/items'); // Make sure this route matches your backend
+                    const response = await fetch('/items'); 
                     const items = await response.json();
 
                     const itemList = document.getElementById('itemList');
