@@ -1,9 +1,9 @@
 package api
 
 import (
-	"grocery-list/templates"
-	"grocery-list/types"
-	"grocery-list/util"
+	"github.com/ladnerm/grocery-list/templates"
+	"github.com/ladnerm/grocery-list/types"
+	"github.com/ladnerm/grocery-list/util"
 	"log"
 	"net/http"
 	"strconv"

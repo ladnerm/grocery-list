@@ -1,1 +1,6 @@
+#swap files
 *.swp
+
+.env
+
+

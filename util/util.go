@@ -2,7 +2,7 @@ package util
 
 import (
 	"encoding/json"
-	"grocery-list/types"
+	"github.com/ladnerm/grocery-list/types"
 	"os"
 )
 

@@ -1,4 +1,4 @@
-module grocery-list
+module github.com/ladnerm/grocery-list
 
 go 1.19
 
