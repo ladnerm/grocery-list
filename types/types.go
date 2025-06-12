@@ -7,11 +7,19 @@ type Item struct {
 	Location string `json:"location"`
 }
 
-func NewItem(name string, user string, location string) *Item {
+func NewItem(id int, name string, user string, location string) *Item {
 	return &Item{
-		ID:       0,
+		ID:       id,
 		Name:     name,
 		User:     user,
 		Location: location,
 	}
+}
+
+type Config struct {
+	Host    string
+	Port    string
+	User    string
+	DBName  string
+	SSLMODE string
 }

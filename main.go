@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/ladnerm/grocery-list/api"
+	"github.com/ladnerm/grocery-list/env"
 )
 
 // TODO:
@@ -9,5 +10,6 @@ import (
 // postgres
 
 func main() {
+	env.SetEnv()
 	api.StartServer()
 }

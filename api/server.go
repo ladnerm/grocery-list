@@ -1,29 +1,18 @@
 package api
 
 import (
+	"database/sql"
+	"github.com/ladnerm/grocery-list/storage"
 	"github.com/ladnerm/grocery-list/templates"
 	"github.com/ladnerm/grocery-list/types"
-	"github.com/ladnerm/grocery-list/util"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-func StartServer() {
-	router := gin.Default()
-	router.LoadHTMLGlob("templates/*")
-	addHandlers(router)
-	router.Run() //:8080
-}
-
-func addHandlers(e *gin.Engine) {
-	e.GET("/", handlerGetIndex())
-	e.GET("/items", handlerGetItems())
-	e.POST("/form", handlerPostForm())
-	e.DELETE("/:id", handlerDeleteItem())
-}
+var db *sql.DB
 
 func handlerGetIndex() func(*gin.Context) {
 	return func(c *gin.Context) {
@@ -35,9 +24,26 @@ func handlerGetIndex() func(*gin.Context) {
 func handlerGetItems() func(*gin.Context) {
 	return func(c *gin.Context) {
 		var itemArr []types.Item
-		err := util.ItemsFromDB(&itemArr)
+
+		query := "SELECT * FROM items;"
+
+		rows, err := db.Query(query)
 		if err != nil {
-			log.Fatalf("Could not open db: %v\n", err)
+			log.Fatalf("Could not perform query: %v\n", err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var id int
+			var name string
+			var user string
+			var location string
+
+			err = rows.Scan(&id, &name, &user, &location)
+			if err != nil {
+				log.Fatalf("could not scan the row: %v", err)
+			}
+			itemArr = append(itemArr, *types.NewItem(id, name, user, location))
 		}
 
 		c.JSON(http.StatusOK, itemArr)
@@ -46,26 +52,29 @@ func handlerGetItems() func(*gin.Context) {
 
 func handlerPostForm() func(*gin.Context) {
 	return func(c *gin.Context) {
-		str := c.PostForm("item")
-		usr := c.PostForm("user")
-		loc := c.PostForm("location")
-		item := types.NewItem(str, usr, loc)
+		newName := c.PostForm("item")
+		newUser := c.PostForm("user")
+		newLoc := c.PostForm("location")
 
-		var itemArr []types.Item
+		var (
+			maxid    int
+			name     string
+			user     string
+			location string
+		)
 
-		err := util.ItemsFromDB(&itemArr)
-		if err != nil {
-			log.Fatalf("FORM: could not get items from DB: %v\n", err)
+		query := "SELECT * FROM items WHERE id = (SELECT MAX(id) from items);"
+
+		row := db.QueryRow(query)
+		err := row.Scan(&maxid, &name, &user, &location)
+		if err == sql.ErrNoRows {
+			maxid = -1
 		}
 
-		if len(itemArr) != 0 {
-			item.ID = itemArr[len(itemArr)-1].ID + 1
-		}
-		itemArr = append(itemArr, *item)
-
-		err = util.WriteToDB(itemArr)
+		query = "INSERT INTO items VALUES ($1, $2, $3, $4);"
+		_, err = db.Exec(query, maxid+1, newName, newUser, newLoc)
 		if err != nil {
-			log.Fatalf("FORM: could not write to DB: %v\n", err)
+			log.Fatal(err)
 		}
 
 		c.Redirect(http.StatusSeeOther, "/")
@@ -75,25 +84,25 @@ func handlerPostForm() func(*gin.Context) {
 func handlerDeleteItem() func(*gin.Context) {
 	return func(c *gin.Context) {
 		id := c.Param("id")
-		var itemArr []types.Item
-
-		err := util.ItemsFromDB(&itemArr)
+		query := "DELETE FROM items WHERE id=$1"
+		_, err := db.Exec(query, id)
 		if err != nil {
-			log.Fatalf("FORM: could not get items from DB: %v\n", err)
+			log.Fatalf("could not delete item with id: %v. ERROR: ", err)
 		}
-
-		var newItemArr []types.Item
-
-		for _, v := range itemArr {
-			idStr, err := strconv.Atoi(id)
-			if err != nil {
-				log.Fatal("could not convert id to string")
-			}
-			if v.ID != idStr {
-				newItemArr = append(newItemArr, v)
-			}
-		}
-
-		util.WriteToDB(newItemArr)
 	}
+}
+
+func addHandlers(e *gin.Engine) {
+	e.GET("/", handlerGetIndex())
+	e.GET("/items", handlerGetItems())
+	e.POST("/form", handlerPostForm())
+	e.DELETE("/delete/:id", handlerDeleteItem())
+}
+
+func StartServer() {
+	db = storage.InitDB()
+	router := gin.Default()
+	router.LoadHTMLGlob("templates/*")
+	addHandlers(router)
+	router.Run() //:8080
 }

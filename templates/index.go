@@ -182,7 +182,7 @@ body {
             async function deleteItem(id) {
 
                 try {
-                    const res = await fetch('/' + id, {
+                    const res = await fetch('/delete/' + id, {
                         method: 'DELETE'
                     });
 
